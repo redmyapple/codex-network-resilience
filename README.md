@@ -33,6 +33,36 @@ codex-network-resilience/
 3. **固定出口必须 Fail Closed**：住宅组只放住宅节点，住宅失效时请求失败，而不是静默回落到机场机房 IP。
 4. **住宅节点做健康检查**：`fallback` 组 + 每 300s 健康检查，SOCKS5 挂了自动切 HTTP，仍保持住宅出口。
 
+## 架构图
+
+```mermaid
+flowchart LR
+    subgraph 客户端
+        App[Windows / CodeX / Chrome 等应用]
+    end
+    subgraph Clash[Clash Verge · 127.0.0.1:7897 · rule 模式]
+        Router{规则分流}
+    end
+    subgraph 出口层
+        MIYA[MIYA-STATIC<br/>住宅固定出口 · Fallback + Fail Closed]
+        Airport[AI智能优选<br/>机场节点 · Fallback 自动切换]
+        Direct[DIRECT<br/>国内直连]
+    end
+    subgraph 落地
+        ResIP[住宅出口 IP<br/>SOCKS5/HTTP 中转]
+        AIP[机房出口 IP]
+    end
+
+    App --> Router
+    Router -- "openai / chatgpt / anthropic / claude / github / google" --> MIYA
+    Router -- "x / twitter / youtube / 一般网站" --> Airport
+    Router -- "GEOIP CN / 私网" --> Direct
+    MIYA --> ResIP
+    Airport --> AIP
+```
+
+**阅读要点**：入口问题换节点；出口问题换策略。AI/账号走住宅（纯净、Fail Closed），流媒体走机场（快），国内直连。
+
 ## 快速开始
 
 ```powershell

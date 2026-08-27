@@ -32,7 +32,7 @@ curl.exe -x http://127.0.0.1:7897 -G --data-urlencode "fields=status,query,count
 | 住宅代理服务商 | Bright Data / Oxylabs / Smartproxy / IPRoyal / Webshare / Soax 等，提供 HTTP/SOCKS5 | 按量/按月 |
 | 自建住宅 | 海外家宽/手机热点搭 v2ray | 高门槛 |
 
-> 本项目以 **MIYAIP 静态住宅 IP** 为例（HTTP / SOCKS5 中转 `geo.miyaip.app`）。所有真实凭据用占位符替代。
+> 本项目以 **MIYAIP 静态住宅 IP** 为例（HTTP / SOCKS5 中转 `<MIYAIP_HOST>`）。所有真实凭据用占位符替代。
 
 ## 配置要点
 
@@ -51,7 +51,7 @@ curl.exe -x http://127.0.0.1:7897 -G --data-urlencode "fields=status,query,count
 ## 出口链路（最终形态）
 
 ```
-Client → Clash(7897) → [openai/chatgpt/...] → MIYA-STATIC → geo.miyaip.app:8001 → 133.157.38.43（住宅）
+Client → Clash(7897) → [openai/chatgpt/...] → MIYA-STATIC → <MIYAIP_HOST>:8001 → <住宅IP>（住宅）
                           [x/youtube/...]     → AI智能优选   → 机场节点            → 机房 IP
 ```
 
@@ -60,7 +60,7 @@ Client → Clash(7897) → [openai/chatgpt/...] → MIYA-STATIC → geo.miyaip.a
 ```powershell
 # 住宅出口确认（chatgpt.com 在住宅规则里）
 curl.exe -4 -x http://127.0.0.1:7897 https://chatgpt.com/cdn-cgi/trace
-# → ip=133.157.38.43  loc=JP
+# → ip=<住宅IP>  loc=JP
 
 # 非住宅域名走机场
 curl.exe -4 -x http://127.0.0.1:7897 https://api.ipify.org

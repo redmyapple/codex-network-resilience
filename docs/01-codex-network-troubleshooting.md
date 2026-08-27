@@ -5,7 +5,7 @@
 - `unexpected status 502 Bad Gateway: Provider unreachable: unknown certificate verification error, url: http://127.0.0.1:10100/v1/responses`
 - `failed to connect to websocket: IO error: connection refused (os error 10061)`
 - `failed to refresh available models: timeout waiting for child process to exit`
-- `Incorrect API key provided: sk-teamo...`
+- `Incorrect API key provided: sk-<第三方Key>...`
 - 大量 `Reconnecting... n/5`
 
 这些现象**不是网络断了**，而是 CodeX 被本地代理 / 中转 / 第三方工具劫持，或端口指向错误。
@@ -57,12 +57,12 @@ NO_PROXY="localhost,127.0.0.1,::1"
 ```json
 {
   "auth_mode": "chatgpt",            // 官方登录应为此值
-  "OPENAI_API_KEY": "sk-teamo-...",  // 若被第三方工具注入，删除该字段
+  "OPENAI_API_KEY": "sk-<第三方注入Key>",  // 若被第三方工具注入，删除该字段
   "tokens": { ... }                  // 官方 OAuth token，保留
 }
 ```
 
-- `auth_mode=apikey` + 一个 `sk-teamo-...` 的 key → 说明被 teamorouter 劫持，CodeX 会拿无效 key 打官方接口 → `invalid_api_key`
+- `auth_mode=apikey` + 一个 `sk-<第三方注入Key>` 的 key → 说明被 teamorouter 劫持，CodeX 会拿无效 key 打官方接口 → `invalid_api_key`
 - 修复：备份后删除 `OPENAI_API_KEY`，把 `auth_mode` 改回 `chatgpt`（保留 `tokens`）
 
 ### 5. 本地中转/代理服务的自启
