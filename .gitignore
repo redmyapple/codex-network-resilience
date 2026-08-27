@@ -1,0 +1,26 @@
+# Secrets
+*.env
+.env
+*.key
+*.pem
+*id_rsa*
+*id_ed25519*
+**/auth.json
+**/.env
+
+# OS / Editor
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Clash runtime / profiles (may contain credentials)
+clash-verge.yaml
+profiles/
+
+# Temp
+*.bak
+*.tmp
