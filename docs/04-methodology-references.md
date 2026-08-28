@@ -75,6 +75,24 @@
 - 架构：客户端 → VLESS-XHTTP-REALITY 中转 VPS → WireGuard → 落地 VPS（SNAT 出网），**出口 IP = 落地机**
 - 借鉴点：分阶段构建 + 每阶段验证（`verify_egress.py` 绑定源 IP 确认实际出口）。需要自有 VPS，当前不适用；但"出口 IP = 落地机"与我们的住宅落地目标完全一致。
 
+## 7. cmliu/edgetunnel（CF Workers/Pages 免费备用线路）
+
+- 仓库：https://github.com/cmliu/edgetunnel（44k+ star）
+- 架构：VLESS/Trojan/SS 跑在 CF Workers/Pages 上，内置管理面板、订阅生成、ProxyIP/SOCKS5 反代、优选订阅生成器
+
+### 借鉴点
+
+| 理念 | 含义 | 适用性 |
+|---|---|---|
+| **永远不要只准备一套线路** | 机场（主）+ CF 免费节点（备）+ 住宅（AI 落地）三层，故障模式互相独立 | 三层架构设计的核心论据 |
+| **入口冗余** | workers.dev / pages.dev / 自定义域 多入口 | 自定义域必须（默认域名在大陆被污染） |
+| **优选订阅生成器**（BEST_SUB） | 自动生成优选 IP 订阅 | 需先验证本地到 CF 的真实连通性（见下） |
+| **PROXYIP / SOCKS5 反代** | 解决 CF 回源限制 | 服务端能力，客户端无需关心 |
+
+### ⚠️ 实测限制（企业网络）
+
+edgetunnel 的入口域名最终解析到 **Cloudflare IP 段**。在屏蔽直连 CF 的企业网络下（TLS 全被拦截），该备用线路**不可达**；家庭宽带/手机热点下通常正常。因此它的定位是「离开公司网络后的备用线路」，而非本机 7x24 兜底。部署前务必先验证：`curl -v --resolve <你的CF域名>:443:<CF_IP> https://<你的CF域名>/`。
+
 ## 抽象出的通用方法论
 
 ```

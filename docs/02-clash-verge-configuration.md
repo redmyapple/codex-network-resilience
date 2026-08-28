@@ -167,6 +167,28 @@ dns:
 - 规则写错会导致整条链路瘫痪，mihomo `-t` 校验通过后再 reload
 - reload 后立刻用真实流量验证出口 IP（`cdn-cgi/trace`），确认没改坏
 
+### 4. 优选 IP 的「假延迟陷阱」（企业网络必读）
+
+CF 中转节点（`server` 为 CF 域名/优选 IP）可以做「优选 IP」提速：用 CloudflareSpeedTest 测出本地延迟最低的 CF Anycast IP，替换节点的 `server`，保持 `SNI/Host` 不变。
+
+**但某些企业网络/防火墙会对境外 IP 段做 TCP SYN 本地代答**——表现为测速延迟极低（如 2.5ms），实际 TLS 握手根本完成不了。**直接按测速结果配置会全部失效。**
+
+正确的验证流程：
+
+```powershell
+# 1. 测速（直连环境，务必临时切 global+DIRECT 排除代理干扰）
+.\cfst.exe -tl 250 -dn 5 -p 10 -o result.csv
+
+# 2. 关键一步：验证优选 IP 能否真正完成 TLS 握手
+#    用 --resolve 强制连优选 IP，SNI 用节点真实域名
+curl.exe -4 -v --resolve "<节点域名>:443:<优选IP>" "https://<节点域名>/" -o NUL
+#    看到证书/HTTP 响应 = 真可用；schannel handshake failed = 防火墙代答的假延迟
+```
+
+**企业网络实测案例**：直连全球 CF IP 段（104.16.0.0/13 等）TLS 全部被拦截失败，但直连 AWS / 国内 IP 正常。此时：
+- 优选 IP 不可用
+- CF Workers/Pages 备用线路（edgetunnel 等）**在此网络也不可达**——但在家庭宽带/手机热点下通常正常，可作为"离开公司网络后的备用线路"
+
 ## 常见坑
 
 - `mode=global` 会让所有流量走 GLOBAL 组，**规则全部失效**。分流必须用 `rule` 模式。
