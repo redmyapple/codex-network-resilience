@@ -36,6 +36,45 @@
 ### 结论
 该项目核心是自建 VPS 服务端（需要 HY2 / REALITY / WARP 部署），**不能直接搬到"机场 + 住宅"的客户端架构**。但它提出的 **Fail Closed** 与 **出口分层** 设计思想，可以在 Clash 侧通过分组 + 分流规则完全实现。
 
+## 3. OpenRung（openrung/openrung）
+
+- 仓库：https://github.com/openrung/openrung
+- 性质：志愿者运营的 VLESS+REALITY+Vision 中继网络（Snowflake 思路的全设备隧道版）
+
+### 借鉴点
+
+| 项目理念 | 含义 | 对本方案的意义 |
+|---|---|---|
+| **中转与落地分离** | 中转节点在资源丰富地区保证速度，落地节点在干净 IP 地区保证纯净 | 验证了"机场前置 + 住宅落地"方向的正确性；但部分住宅中转拒绝被中继访问，落地方式需按服务商实测 |
+| **按健康度选路** | Broker 按连接成功率/延迟/测速对中继排序，把用户导向"真正能用"的节点 | 等价于我们的 `filter-best-node.ps1`（ip-api 纯净度 + OpenAI 可达 + 延迟筛选） |
+| **Fail Closed** | Broker 无共享 token 拒绝启动 | 与我们住宅组 Fail Closed 同源思想 |
+| **直连优先 + 回退** | 直连 REALITY 失败时走签名 WSS/CDN 前置 | 客户端侧等价物：多订阅/多节点冗余 + fallback 自动切换 |
+| **控制面与数据面分离** | Broker 只做匹配，不碰用户流量 | 排障时区分"选路问题"与"链路问题" |
+
+## 4. xiaonancs/ace-vpn（同架构：Clash Verge Rev + Mihomo）
+
+- 仓库：https://github.com/xiaonancs/ace-vpn
+
+### 借鉴点
+
+| 项目理念 | 落地方式 |
+|---|---|
+| **规则写入前 pre-flight 校验** | 坏规则永不进 override；本方案用 `mihomo -t` 校验通过再 reload |
+| **改配置前自动备份** | 每次改覆盖文件先 `.bak-时间戳` |
+| **本地规则池** | 日常临时规则本机秒级生效，攒后批量提升 |
+| **真实配置与公开仓库分离** | 含凭据的配置放私有仓库，公开仓库只放模板 —— 本仓库同理，全占位符 |
+
+## 5. seb0ch/vpn（DNS 加固）
+
+- 仓库：https://github.com/seb0ch/vpn
+- 借鉴点：**强制加密 DNS**（所有 53 端口流量 DNAT 到 dnscrypt-proxy / DoH）。客户端侧落地：`nameserver` 优先 DoH（阿里/腾讯），明文 DNS 兜底，防污染防劫持。
+
+## 6. superchaospc/reality-wireguard-relay（两跳中转+落地）
+
+- 仓库：https://github.com/superchaospc/reality-wireguard-relay
+- 架构：客户端 → VLESS-XHTTP-REALITY 中转 VPS → WireGuard → 落地 VPS（SNAT 出网），**出口 IP = 落地机**
+- 借鉴点：分阶段构建 + 每阶段验证（`verify_egress.py` 绑定源 IP 确认实际出口）。需要自有 VPS，当前不适用；但"出口 IP = 落地机"与我们的住宅落地目标完全一致。
+
 ## 抽象出的通用方法论
 
 ```

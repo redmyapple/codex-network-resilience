@@ -131,6 +131,42 @@ curl.exe -4 -x http://127.0.0.1:7897 https://chatgpt.com/cdn-cgi/trace
 curl.exe -4 -x http://127.0.0.1:7897 https://api.ipify.org
 ```
 
+## 稳定性加固
+
+### 1. 屏蔽 QUIC（UDP 443 → REJECT）
+
+住宅节点多为 `udp: false`，应用尝试 HTTP/3（QUIC over UDP 443）会失败，等超时后才回退 TCP，造成明显卡顿。直接在规则最前面 REJECT 掉 QUIC，强制走 TCP：
+
+```yaml
+rules:
+- AND,((NETWORK,udp),(DST-PORT,443)),REJECT   # 必须是第一条规则
+- DOMAIN-SUFFIX,openai.com,MIYA-STATIC
+...
+```
+
+浏览器会自动回退 HTTP/2 over TCP，无感知；代理链路从此不再有 QUIC 失败重试。
+
+### 2. DNS 加固（DoH 优先，明文兜底）
+
+明文 DNS 易被污染。在 `nameserver` 里加入 DoH（国内阿里/腾讯 DoH 可用性好）：
+
+```yaml
+dns:
+  nameserver:
+  - https://223.5.5.5/dns-query     # 阿里 DoH
+  - https://doh.pub/dns-query       # 腾讯 DoH
+  - 223.5.5.5                        # 明文兜底
+  - 119.29.29.29
+```
+
+**持久化注意**：Clash Verge 的 DNS 段可能由订阅链生成。为保证刷新订阅后不丢，把 DNS 块写入活动订阅的 **merge 覆盖文件**（如 `mXXXXX.yaml`），而不是只改运行时配置。
+
+### 3. 改配置前自动备份 + 校验（借鉴 ace-vpn）
+
+- 每次修改覆盖文件前先备份原文件（`xxx.yaml.bak-时间戳`）
+- 规则写错会导致整条链路瘫痪，mihomo `-t` 校验通过后再 reload
+- reload 后立刻用真实流量验证出口 IP（`cdn-cgi/trace`），确认没改坏
+
 ## 常见坑
 
 - `mode=global` 会让所有流量走 GLOBAL 组，**规则全部失效**。分流必须用 `rule` 模式。
