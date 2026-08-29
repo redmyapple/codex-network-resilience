@@ -24,3 +24,4 @@ profiles/
 # Temp
 *.bak
 *.tmp
+# Wrangler local cache.wrangler/
