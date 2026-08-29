@@ -185,9 +185,10 @@ curl.exe -4 -v --resolve "<节点域名>:443:<优选IP>" "https://<节点域名>
 #    看到证书/HTTP 响应 = 真可用；schannel handshake failed = 防火墙代答的假延迟
 ```
 
-**企业网络实测案例**：直连全球 CF IP 段（104.16.0.0/13 等）TLS 全部被拦截失败，但直连 AWS / 国内 IP 正常。此时：
-- 优选 IP 不可用
-- CF Workers/Pages 备用线路（edgetunnel 等）**在此网络也不可达**——但在家庭宽带/手机热点下通常正常，可作为"离开公司网络后的备用线路"
+**企业网络实测案例（重要修正）**：某企业网络直连 CF IP 段时，**SNI 为机场域名（已知代理域名）的 TLS 会被拦截，但 SNI 为 `www.cloudflare.com` 或无名个人域名的 TLS 完全正常**——即防火墙做的是 **SNI/域名黑名单**，不是封 CF IP 段。推论：
+- 优选 IP 对「SNI 被拉黑的节点」无效（换 IP 没用，ClientHello 里的 SNI 一样被掐）
+- CF Workers/Pages 备用线路（edgetunnel 等）部署在**自己的新域名**上时，通常不在黑名单内 → **企业网络下也可用**
+- 部署后务必端到端验证：真实流量穿过节点查询出口 IP
 
 ## 常见坑
 
