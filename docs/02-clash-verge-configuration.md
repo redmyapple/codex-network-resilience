@@ -190,6 +190,75 @@ curl.exe -4 -v --resolve "<节点域名>:443:<优选IP>" "https://<节点域名>
 - CF Workers/Pages 备用线路（edgetunnel 等）部署在**自己的新域名**上时，通常不在黑名单内 → **企业网络下也可用**
 - 部署后务必端到端验证：真实流量穿过节点查询出口 IP
 
+## 多线路冗余（备用线路层）
+
+「永远不要只准备一套线路」——在机场之外，用 **Cloudflare Workers/Pages 免费节点**（edgetunnel）做备用线路，故障模式与机场完全独立。
+
+### 三层架构
+
+```yaml
+# 出口分层（rules 顺序即优先级）
+- openai/chatgpt/anthropic/claude/github/google → MIYA-STATIC   # 住宅固定出口
+- x/twitter/youtube/一般流量                     → 线路冗余      # 自动互备
+- GEOIP CN → DIRECT
+
+# 线路冗余组：机场全挂时自动切 CF 节点
+- name: 线路冗余
+  type: fallback
+  interval: 300
+  url: http://www.gstatic.com/generate_204
+  proxies:
+  - AI智能优选        # 机场（组引用）
+  - CF备用节点        # CF Workers/Pages 免费节点
+```
+
+### CF 节点模板（edgetunnel 部署后）
+
+```yaml
+- name: CF备用节点
+  type: vless
+  server: <你的项目>.pages.dev
+  port: 443
+  uuid: <UUID>
+  udp: false
+  tls: true
+  servername: <你的项目>.pages.dev
+  client-fingerprint: chrome
+  network: ws
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: <你的项目>.pages.dev
+```
+
+### 无头部署（Wrangler CLI，免网页操作）
+
+```powershell
+# 1. 授权（弹浏览器点 Allow）
+npx wrangler login
+
+# 2. 创建 KV 命名空间
+npx wrangler kv namespace create KV
+
+# 3. 创建 Pages 项目
+npx wrangler pages project create <项目名> --production-branch=main
+
+# 4. 部署目录放 _worker.js + wrangler.toml：
+#    name/pages_build_output_dir/kv_namespaces/[vars] ADMIN、UUID
+npx wrangler pages deploy . --project-name=<项目名> --branch=main
+```
+
+凭据（ADMIN/UUID）保存在本机私有文件，不进仓库。部署后验证：`curl -x <clash> https://<项目>.pages.dev/` 应 200。
+
+### ⚠️ wrangler 非交互环境认证坑
+
+`wrangler login` 的 OAuth token 存在 `%APPDATA%\xdg.config\.wrangler\config\default.toml`，但部分子命令在非交互环境读不到它（报"需要 CLOUDFLARE_API_TOKEN"）。修复：从该文件提取 `oauth_token` 注入环境变量：
+
+```powershell
+$tok = (Select-String -Path "$env:APPDATA\xdg.config\.wrangler\config\default.toml" -Pattern 'oauth_token\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value
+$env:CLOUDFLARE_API_TOKEN = $tok
+```
+
 ## 常见坑
 
 - `mode=global` 会让所有流量走 GLOBAL 组，**规则全部失效**。分流必须用 `rule` 模式。
