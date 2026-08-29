@@ -16,7 +16,8 @@
 - **绝不提交**：密码、token、API Key、订阅 URL、真实服务器 IP / 域名、`auth.json`、`.env`、Clash 运行时配置。
 - 所有敏感值一律用占位符：`<USERNAME>`、`<PASSWORD>`、`<HOST>`、`<PORT>`、`<住宅IP>`、`<MIYAIP_HOST>` 等。
 - 提交前自查：`Select-String -Path <repo> -Pattern '<真实IP>|<真实密码>|<订阅URL>'`。
-- `.gitignore` 已排除 `*.env`、`auth.json`、`clash-verge.yaml`、`profiles/` 等。
+- `.gitignore` 已排除 `*.env`、`auth.json`、`clash-verge.yaml`、`profiles/`、`.wrangler/` 等。
+- **在仓库目录运行 wrangler 等工具会生成缓存文件**（如 `.wrangler/cache/wrangler-account.json` 含账号信息）——曾被误提交后清除。教训：新工具生成的本地文件第一时间加入 `.gitignore`，每次 `git push` 前必须 `git status` 核对暂存内容。
 
 ## 同步命令
 
