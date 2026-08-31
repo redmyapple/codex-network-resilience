@@ -259,6 +259,22 @@ $tok = (Select-String -Path "$env:APPDATA\xdg.config\.wrangler\config\default.to
 $env:CLOUDFLARE_API_TOKEN = $tok
 ```
 
+### ⚠️ wrangler 非交互环境认证坑（实测）
+
+1. **OAuth token 不能直接当 API Bearer 用**：从配置文件提取 `oauth_token` 直接调 CF API 会报 `9109 Invalid access token`——它只供 wrangler 内部使用。需要调 API 时，去 dashboard 创建真正的 API Token。
+2. **配置文件双路径坑**：`wrangler login` 写入的位置取决于环境变量——可能是 `%USERPROFILE%\.wrangler\config\default.toml` 或 `%APPDATA%\xdg.config\.wrangler\config\default.toml`。提取 token 前先确认哪个是**新写入的**（按 mtime 判断），否则会拿到过期 token。
+3. **OAuth token 约 1-2 小时过期**（有 refresh_token，wrangler 会自动续期；但长期未用会失效需重新 login）。
+
+### ⚠️ Pages 自定义域 DNS 记录需手动创建
+
+通过 API `POST /accounts/{id}/pages/projects/{project}/domains` 绑定自定义域后，域名状态为 `pending`，**CF 不会自动创建 DNS 记录**（即使 zone 在同一账号）。需手动添加：
+- `CNAME <子域> → <项目名>.pages.dev`（开启代理/橙云）
+- 之后 CF 自动完成 HTTP 验证并签发证书（1-2 分钟）
+
+### ⚠️ Worker 冷启动
+
+首次请求可能失败或超时（Worker 冷启动 + TLS 建连），重试即恢复。给备用线路的监控/测试逻辑加一次重试。
+
 ## 常见坑
 
 - `mode=global` 会让所有流量走 GLOBAL 组，**规则全部失效**。分流必须用 `rule` 模式。
