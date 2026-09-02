@@ -275,6 +275,19 @@ $env:CLOUDFLARE_API_TOKEN = $tok
 
 首次请求可能失败或超时（Worker 冷启动 + TLS 建连），重试即恢复。给备用线路的监控/测试逻辑加一次重试。
 
+### 4. 全局去广告（一行规则，零维护）
+
+广告流量白白消耗带宽和代理流量。mihomo 的 `geosite.dat`（MetaCubeX 构建）内置 `category-ads-all` 广告域名分类（聚合 EasyList China、乘风规则、Peter Lowe 等同源数据，与 Shadowrocket-ADBlock-Rules-Forever 的去广告策略同源），一行规则开启全局去广告：
+
+```yaml
+rules:
+- GEOSITE,category-ads-all,REJECT   # 放在规则最前面
+```
+
+- 零外部依赖：直接读本地 geosite.dat，无需远程 rule-provider
+- 验证：广告域名（如 googleads.g.doubleclick.net）应立即被 REJECT，正常流量不受影响
+- 补充知识点：规则行数不影响匹配速度（规则加载时构建 DFA 搜索树 + 哈希缓存，O(1)）
+
 ## 常见坑
 
 - `mode=global` 会让所有流量走 GLOBAL 组，**规则全部失效**。分流必须用 `rule` 模式。

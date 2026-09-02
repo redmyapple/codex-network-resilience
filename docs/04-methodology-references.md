@@ -97,6 +97,20 @@
 - 部署后必须端到端验证（真实流量穿过节点查出口 IP），并留意流量特征长期是否触发域名进入黑名单
 - 优选 IP 只对「SNI 未被拉黑」的节点有效
 
+## 7. Johnshall/Shadowrocket-ADBlock-Rules-Forever（去广告规则聚合）
+
+- 仓库：https://github.com/Johnshall/Shadowrocket-ADBlock-Rules-Forever（29.7k star）
+- 性质：Shadowrocket 格式规则合集，每日自动构建，聚合 GFWList + EasyList China + 乘风规则 + Peter Lowe + blackmatrix7
+
+### 借鉴点
+
+| 理念 | 落地 |
+|---|---|
+| **去广告聚合**（EasyList China + 乘风 + Peter Lowe 同源数据） | mihomo 一行规则 `GEOSITE,category-ads-all,REJECT` 读取本地 geosite.dat 内置同源分类，零外部依赖 |
+| 黑名单/白名单两种分流思路 | 用户已是混合式（已知 AI→住宅、流媒体→机场、CN→直连、未知→代理） |
+| 「规则行数不影响速度」 | 规则加载时构建 DFA + 哈希缓存，O(1)——放心加规则 |
+| 规则每日自动更新 | geosite.dat 由 Clash Verge 维护更新；远程 rule-provider 可配 interval 自动更新 |
+
 ## 抽象出的通用方法论
 
 ```
