@@ -21,7 +21,8 @@ codex-network-resilience/
 │   ├── 01-codex-network-troubleshooting.md   # CodeX 网络故障排查手册
 │   ├── 02-clash-verge-configuration.md        # Clash Verge 分流配置策略
 │   ├── 03-residential-proxy-strategy.md       # 住宅代理固定出口策略
-│   └── 04-methodology-references.md           # 借鉴的项目与方法论
+│   ├── 04-methodology-references.md           # 借鉴的项目与方法论
+│   └── 05-backup-client-nekobox.md            # 备用客户端 NekoBox（客户端级冗余）
 └── scripts/
     └── filter-best-node.ps1                   # 基于 ip-api.com 的节点质量筛选脚本
 ```
@@ -34,6 +35,8 @@ codex-network-resilience/
 4. **住宅节点做健康检查**：`fallback` 组 + 每 300s 健康检查，SOCKS5 挂了自动切 HTTP，仍保持住宅出口。
 5. **永远不要只准备一套线路**：机场（主用）+ CF Workers/Pages 免费节点（edgetunnel，备用）+ 住宅落地（AI 固定出口），三层故障模式互相独立，组成自动互备的冗余架构。
 6. **企业网络先做连通性验证再配置**：防火墙可能是 SNI 域名黑名单（知名代理域名被掐、普通 CF 域名畅通），测速超低延迟可能是 TCP SYN 本地代答的假象——用 TLS 握手 + 端到端出口验证甄别。
+7. **客户端也做冗余**：Clash Verge（主，规则分流强）+ NekoBox（备，故障域隔离），两套内核两套配置流水线，一个瘫痪另一个顶上。
+8. **去广告在规则层拦截**：`GEOSITE,category-ads-all,REJECT` 一行规则全局去广告，省流量且零维护。
 
 ## 架构图
 
