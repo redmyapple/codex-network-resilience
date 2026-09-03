@@ -22,9 +22,11 @@ codex-network-resilience/
 │   ├── 02-clash-verge-configuration.md        # Clash Verge 分流配置策略
 │   ├── 03-residential-proxy-strategy.md       # 住宅代理固定出口策略
 │   ├── 04-methodology-references.md           # 借鉴的项目与方法论
-│   └── 05-backup-client-nekobox.md            # 备用客户端 NekoBox（客户端级冗余）
-└── scripts/
-    └── filter-best-node.ps1                   # 基于 ip-api.com 的节点质量筛选脚本
+│   ├── 05-backup-client-nekobox.md            # 备用客户端 NekoBox（客户端级冗余）
+│   └── 06-selfhost-vps-roadmap.md             # 自建 VPS 路线图（彻底摆脱机场依赖）
+├── scripts/
+│   ├── deploy-vps-xray.sh                     # VPS 一键部署 Xray VLESS+REALITY
+│   └── filter-best-node.ps1                   # 基于 ip-api.com 的节点质量筛选脚本
 ```
 
 ## 核心结论（TL;DR）
