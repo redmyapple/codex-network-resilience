@@ -23,7 +23,9 @@ codex-network-resilience/
 │   ├── 03-residential-proxy-strategy.md       # 住宅代理固定出口策略
 │   ├── 04-methodology-references.md           # 借鉴的项目与方法论
 │   ├── 05-backup-client-nekobox.md            # 备用客户端 NekoBox（客户端级冗余）
-│   └── 06-selfhost-vps-roadmap.md             # 自建 VPS 路线图（彻底摆脱机场依赖）
+│   ├── 06-selfhost-vps-roadmap.md             # 自建 VPS 路线图（彻底摆脱机场依赖）
+│   ├── 07-vps-provider-research.md            # 低价 VPS 厂商调研（DediRock 案例 + 库存 API 逆向）
+│   └── 08-clients-and-fallback-playbook.md    # 客户端矩阵与应急策略（bannedbook/fanqiang 整理）
 ├── scripts/
 │   ├── deploy-vps-xray.sh                     # VPS 一键部署 Xray VLESS+REALITY
 │   └── filter-best-node.ps1                   # 基于 ip-api.com 的节点质量筛选脚本
@@ -39,6 +41,7 @@ codex-network-resilience/
 6. **企业网络先做连通性验证再配置**：防火墙可能是 SNI 域名黑名单（知名代理域名被掐、普通 CF 域名畅通），测速超低延迟可能是 TCP SYN 本地代答的假象——用 TLS 握手 + 端到端出口验证甄别。
 7. **客户端也做冗余**：Clash Verge（主，规则分流强）+ NekoBox（备，故障域隔离），两套内核两套配置流水线，一个瘫痪另一个顶上。
 8. **去广告在规则层拦截**：`GEOSITE,category-ads-all,REJECT` 一行规则全局去广告，省流量且零维护。
+9. **低价 VPS 当可丢弃资源**：年付 < $15 的机器只做探针/备份/练手；买前看厂商年龄、SLA、社区故障史（详见 docs/07），生产业务选成熟商家。
 
 ## 架构图
 
