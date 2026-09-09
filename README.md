@@ -25,7 +25,8 @@ codex-network-resilience/
 │   ├── 05-backup-client-nekobox.md            # 备用客户端 NekoBox（客户端级冗余）
 │   ├── 06-selfhost-vps-roadmap.md             # 自建 VPS 路线图（彻底摆脱机场依赖）
 │   ├── 07-vps-provider-research.md            # 低价 VPS 厂商调研（DediRock 案例 + 库存 API 逆向）
-│   └── 08-clients-and-fallback-playbook.md    # 客户端矩阵与应急策略（bannedbook/fanqiang 整理）
+│   ├── 08-clients-and-fallback-playbook.md    # 客户端矩阵与应急策略（bannedbook/fanqiang 整理）
+│   └── 09-censorship-theory-and-coldstart.md  # 封锁原理速查与冷启动预案（fq-book 整合）
 ├── scripts/
 │   ├── deploy-vps-xray.sh                     # VPS 一键部署 Xray VLESS+REALITY
 │   └── filter-best-node.ps1                   # 基于 ip-api.com 的节点质量筛选脚本
@@ -42,6 +43,7 @@ codex-network-resilience/
 7. **客户端也做冗余**：Clash Verge（主，规则分流强）+ NekoBox（备，故障域隔离），两套内核两套配置流水线，一个瘫痪另一个顶上。
 8. **去广告在规则层拦截**：`GEOSITE,category-ads-all,REJECT` 一行规则全局去广告，省流量且零维护。
 9. **低价 VPS 当可丢弃资源**：年付 < $15 的机器只做探针/备份/练手；买前看厂商年龄、SLA、社区故障史（详见 docs/07），生产业务选成熟商家。
+10. **先定性封锁类型再动手**：Ping 通 + TCP 端口超时 = IP 被墙（回程阻断）；证书报错 = DNS 污染——对症下药，别用排除法浪费时间（详见 docs/09）。
 
 ## 架构图
 

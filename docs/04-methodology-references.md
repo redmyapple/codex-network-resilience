@@ -111,6 +111,24 @@
 | 「规则行数不影响速度」 | 规则加载时构建 DFA + 哈希缓存，O(1)——放心加规则 |
 | 规则每日自动更新 | geosite.dat 由 Clash Verge 维护更新；远程 rule-provider 可配 interval 自动更新 |
 
+## 8. hoochanlon/fq-book（封锁原理与冷启动方法论）
+
+- 仓库：https://github.com/hoochanlon/fq-book（4.4k+ star，2026-09 仍活跃）
+- 性质：《这本书能让你连接互联网》——GFW 封锁原理、代理/VPN 原理科普、工具获取方法论的 docsify 在线书
+
+### 借鉴点
+
+| 项目理念 | 含义 | 本仓库落地 |
+|---|---|---|
+| **封锁手段分类学** | 关键字过滤/IP 封锁/端口封锁/SSL 阻断/DNS 污染/TCP 回程阻断六类 | docs/09 速查表：症状 → 甄别 → 对策，接入 docs/01 排查流 |
+| **TCP 回程阻断判别** | Ping 通 + TCPing 不通 = IP 被墙（99% 定性） | docs/06 VPS 被墙速判（`Test-NetConnection`），自建运维必备 |
+| **冷启动方法论** | "记住通道而不是站点"——邮箱自动回复/GitHub 检索/P2P/社工等 8 条获取通道 | docs/09 冷启动预案：全线路瘫痪时的重新起步 |
+| **DNS 污染症状学** | `NET::ERR_CERT_AUTHORITY_INVALID` = ISP 假证书 | docs/09 DNS/hosts 抗污染要点 |
+| **安全警示** | 异常卡顿站=挖矿；未加密压缩包可被深度检测 | 已并入 docs/09 预案警示 |
+
+### 结论
+该项目是**理论与方法论来源**，不提供配置文件；与 bannedbook/fanqiang（工具教程合集）互补——一个讲"为什么会被断、怎么重新开始"，一个讲"用什么工具"。
+
 ## 抽象出的通用方法论
 
 ```
@@ -130,5 +148,6 @@
 ## 参考链接
 
 - bannedbook/fanqiang：https://github.com/bannedbook/fanqiang
+- hoochanlon/fq-book：https://github.com/hoochanlon/fq-book
 - yding-git/personal-edge-proxy：https://github.com/yding-git/personal-edge-proxy
 - ip-api.com：https://ip-api.com

@@ -66,6 +66,17 @@ ssh root@<VPS_IP> "bash /root/deploy-vps-xray.sh"
 
 所有密钥在 VPS 上现生成，只出现在输出里（含隐私，不要外传）。
 
+## VPS 突然失联：先判是否被墙
+
+自建后最常见的故障是 IP 被墙（TCP 回程阻断）。两条命令定性，不用排除法：
+
+```powershell
+ping <VPS_IP>                          # ICMP 通
+Test-NetConnection <VPS_IP> -Port 443  # TCP 握手超时
+```
+
+**Ping 通 + TCP 端口超时 = 99% IP 被墙**（回程被 GFW 拦截），处置：换 IP / REALITY / CDN 前置。封锁原理与更多甄别方法见 docs/09。
+
 ## 第四步：交给 AI 接入 Clash
 
 把输出的 `vless://` 链接发给 AI（或者只给：服务器 IP、UUID、PUBLIC_KEY、SHORT_ID 四项），AI 会：
