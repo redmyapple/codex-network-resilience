@@ -1,53 +1,89 @@
 #!/usr/bin/env bash
 # ============================================================
-# deploy-vps-xray.sh â€” å…¨æ–° Ubuntu/Debian VPS ä¸€é”®éƒ¨ç½²
+# deploy-vps-xray.sh ¡ª È«ĞÂ VPS Ò»¼ü²¿Êğ
 # Xray VLESS + REALITY + Vision (TCP 443)
 #
-# ç”¨æ³• (root):
+# Ö§³Ö: Ubuntu / Debian / AlmaLinux / Rocky / RHEL / CentOS Stream
+#
+# ÓÃ·¨ (root):
 #   bash deploy-vps-xray.sh
 #
-# å¯é€‰ç¯å¢ƒå˜é‡:
-#   DEST=www.apple.com.cn   REALITY ä¼ªè£…ç›®æ ‡ç«™ç‚¹ (é»˜è®¤ www.apple.com.cn)
-#   PORT=443                ç›‘å¬ç«¯å£ (é»˜è®¤ 443)
+# ¿ÉÑ¡»·¾³±äÁ¿:
+#   DEST=www.apple.com.cn   REALITY Î±×°Ä¿±êÕ¾µã (Ä¬ÈÏ www.apple.com.cn)
+#   PORT=443                ¼àÌı¶Ë¿Ú (Ä¬ÈÏ 443)
 #
-# è®¾è®¡å‚è€ƒ: yding-git/personal-edge-proxy (æ¡£ä½A: HY2/REALITY -> VPS Direct)
-# è¾“å‡º: å®¢æˆ·ç«¯ vless:// é“¾æ¥ (å«å…¨éƒ¨å‚æ•°)ã€‚é“¾æ¥å« UUID,è¯·å¦¥å–„ä¿ç®¡,ä¸è¦å¤–ä¼ ã€‚
+# Éè¼Æ²Î¿¼: yding-git/personal-edge-proxy (µµÎ»A: HY2/REALITY -> VPS Direct)
+# Êä³ö: ¿Í»§¶Ë vless:// Á´½Ó (º¬È«²¿²ÎÊı)¡£Á´½Óº¬ UUID,ÇëÍ×ÉÆ±£¹Ü,²»ÒªÍâ´«¡£
 # ============================================================
 set -euo pipefail
 
-[[ $EUID -ne 0 ]] && { echo "[é”™è¯¯] è¯·ç”¨ root è¿è¡Œ"; exit 1; }
+[[ $EUID -ne 0 ]] && { echo "[´íÎó] ÇëÓÃ root ÔËĞĞ"; exit 1; }
 
 DEST="${DEST:-www.apple.com.cn}"
 PORT="${PORT:-443}"
 XRAY_BIN=/usr/local/bin/xray
 
-echo "==> [1/6] ç³»ç»Ÿæ—¶é—´æ ¡å‡† (æ—¶é—´åå·®ä¼šå¯¼è‡´ TLS å¤±è´¥)"
-timedatectl set-timezone Asia/Shanghai 2>/dev/null || true
-apt-get install -y -qq chrony >/dev/null 2>&1 || true
-systemctl enable --now chrony >/dev/null 2>&1 || true
+is_el() {
+  [[ -f /etc/redhat-release ]] || [[ -f /etc/almalinux-release ]] || grep -qiE 'rhel|almalinux|rocky|centos|fedora' /etc/os-release 2>/dev/null
+}
 
-echo "==> [2/6] å¼€å¯ BBR æ‹¥å¡æ§åˆ¶ (æ”¹å–„é«˜ä¸¢åŒ…çº¿è·¯åå)"
+pkg_install() {
+  if command -v dnf >/dev/null 2>&1; then
+    dnf install -y "$@"
+  elif command -v yum >/dev/null 2>&1; then
+    yum install -y "$@"
+  elif command -v apt-get >/dev/null 2>&1; then
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@"
+  else
+    echo "[´íÎó] Î´ÕÒµ½ apt/dnf/yum"
+    exit 1
+  fi
+}
+
+echo "==> [1/6] ÏµÍ³Ê±¼äĞ£×¼ (Ê±¼äÆ«²î»áµ¼ÖÂ TLS Ê§°Ü)"
+timedatectl set-timezone Asia/Shanghai 2>/dev/null || true
+pkg_install chrony curl unzip openssl ca-certificates tar >/dev/null
+if systemctl list-unit-files | grep -q '^chronyd'; then
+  systemctl enable --now chronyd >/dev/null 2>&1 || true
+else
+  systemctl enable --now chrony >/dev/null 2>&1 || true
+fi
+chronyc makestep >/dev/null 2>&1 || true
+
+echo "==> [2/6] ¿ªÆô BBR ÓµÈû¿ØÖÆ (¸ÄÉÆ¸ß¶ª°üÏßÂ·ÍÌÍÂ)"
 grep -q "tcp_congestion_control=bbr" /etc/sysctl.conf 2>/dev/null || {
   echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
   echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
   sysctl -p >/dev/null
 }
-sysctl net.ipv4.tcp_congestion_control | grep -q bbr && echo "    BBR å·²å¯ç”¨" || echo "    [è­¦å‘Š] BBR æœªç”Ÿæ•ˆ(å†…æ ¸ä¸æ”¯æŒ?),ç»§ç»­"
+sysctl net.ipv4.tcp_congestion_control | grep -q bbr && echo "    BBR ÒÑÆôÓÃ" || echo "    [¾¯¸æ] BBR Î´ÉúĞ§(ÄÚºË²»Ö§³Ö?),¼ÌĞø"
 
-echo "==> [3/6] å®‰è£… Xray-core (å®˜æ–¹å®‰è£…è„šæœ¬)"
+echo "==> [3/6] °²×° Xray-core (¹Ù·½°²×°½Å±¾)"
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install >/dev/null 2>&1
-[[ -x $XRAY_BIN ]] || { echo "[é”™è¯¯] Xray å®‰è£…å¤±è´¥"; exit 1; }
+[[ -x $XRAY_BIN ]] || { echo "[´íÎó] Xray °²×°Ê§°Ü"; exit 1; }
 echo "    $($XRAY_BIN version | head -1)"
 
-echo "==> [4/6] ç”Ÿæˆ UUID / REALITY å¯†é’¥å¯¹ / shortId"
+# AlmaLinux/RHEL Ä¬ÈÏ SELinux=Enforcing, nobody + bind 443 »á±»À¹
+if command -v getenforce >/dev/null 2>&1; then
+  if [[ "$(getenforce)" == "Enforcing" ]]; then
+    echo "    SELinux Enforcing -> Permissive (·ñÔò Xray ÎŞ·¨¼àÌı 443)"
+    setenforce 0
+    if [[ -f /etc/selinux/config ]]; then
+      sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
+    fi
+  fi
+fi
+
+echo "==> [4/6] Éú³É UUID / REALITY ÃÜÔ¿¶Ô / shortId"
 UUID=$($XRAY_BIN uuid)
 KEYS=$($XRAY_BIN x25519)
 PRIVATE_KEY=$(echo "$KEYS" | grep -i "private" | awk '{print $NF}')
 PUBLIC_KEY=$(echo "$KEYS" | grep -i "public"  | awk '{print $NF}')
 SHORT_ID=$(openssl rand -hex 8)
-[[ -n $PRIVATE_KEY && -n $PUBLIC_KEY ]] || { echo "[é”™è¯¯] å¯†é’¥ç”Ÿæˆå¤±è´¥"; exit 1; }
+[[ -n $PRIVATE_KEY && -n $PUBLIC_KEY ]] || { echo "[´íÎó] ÃÜÔ¿Éú³ÉÊ§°Ü"; exit 1; }
 
-echo "==> [5/6] å†™å…¥é…ç½® (VLESS+REALITY+Vision @ TCP $PORT, dest=$DEST)"
+echo "==> [5/6] Ğ´ÈëÅäÖÃ (VLESS+REALITY+Vision @ TCP $PORT, dest=$DEST)"
 mkdir -p /usr/local/etc/xray
 cat > /usr/local/etc/xray/config.json <<EOF
 {
@@ -85,11 +121,23 @@ cat > /usr/local/etc/xray/config.json <<EOF
 }
 EOF
 
-echo "==> [6/6] é˜²ç«å¢™æ”¾è¡Œ + å¯åŠ¨æœåŠ¡"
+echo "==> [6/6] ·À»ğÇ½·ÅĞĞ + Æô¶¯·şÎñ"
 if command -v ufw >/dev/null 2>&1; then
   ufw allow "$PORT/tcp" >/dev/null 2>&1 || true
   ufw allow 22/tcp >/dev/null 2>&1 || true
 fi
+if command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet firewalld; then
+  firewall-cmd --permanent --add-port="${PORT}/tcp" >/dev/null 2>&1 || true
+  firewall-cmd --permanent --add-service=ssh >/dev/null 2>&1 || true
+  firewall-cmd --reload >/dev/null 2>&1 || true
+  echo "    firewalld ÒÑ·ÅĞĞ TCP $PORT / 22"
+fi
+# ¶µµ×: ²¿·Ö¾µÏñÖ»ÓÃ nft/iptables ÇÒ firewalld Î´ÔËĞĞ
+if command -v iptables >/dev/null 2>&1 && ! command -v firewall-cmd >/dev/null 2>&1; then
+  iptables -C INPUT -p tcp --dport "$PORT" -j ACCEPT 2>/dev/null || \
+    iptables -I INPUT -p tcp --dport "$PORT" -j ACCEPT || true
+fi
+
 systemctl enable xray >/dev/null 2>&1
 systemctl restart xray
 sleep 2
@@ -99,11 +147,11 @@ PUBIP=$(curl -4 -s --max-time 10 https://api.ipify.org 2>/dev/null || hostname -
 
 echo ""
 echo "============================================================"
-echo " éƒ¨ç½²å®Œæˆã€‚ä»¥ä¸‹ä¸ºå®¢æˆ·ç«¯é…ç½® (å¦¥å–„ä¿ç®¡,å«éšç§å‡­æ®):"
+echo " ²¿ÊğÍê³É¡£ÒÔÏÂÎª¿Í»§¶ËÅäÖÃ (Í×ÉÆ±£¹Ü,º¬ÒşË½Æ¾¾İ):"
 echo "------------------------------------------------------------"
-echo " åè®®:      VLESS + REALITY + Vision"
-echo " æœåŠ¡å™¨:    $PUBIP"
-echo " ç«¯å£:      $PORT"
+echo " Ğ­Òé:      VLESS + REALITY + Vision"
+echo " ·şÎñÆ÷:    $PUBIP"
+echo " ¶Ë¿Ú:      $PORT"
 echo " UUID:      $UUID"
 echo " SNI:       $DEST"
 echo " PUBLIC_KEY: $PUBLIC_KEY"
@@ -111,7 +159,7 @@ echo " SHORT_ID:  $SHORT_ID"
 echo "------------------------------------------------------------"
 echo " vless://$UUID@$PUBIP:$PORT?encryption=none&security=reality&sni=$DEST&fp=safari&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp&flow=xtls-rprx-vision#SelfHost-Reality"
 echo "============================================================"
-echo " æç¤º:"
-echo "  - å¤‡ä»½ /usr/local/etc/xray/config.json ä¸ä»¥ä¸Šä¿¡æ¯"
-echo "  - åç»­åŠ èŠ‚ç‚¹/æ”¹ç«¯å£: ç¼–è¾‘ config.json å systemctl restart xray"
-echo "  - å¯é€‰åŠ å›º: Hysteria2 (UDP) å…¥å£å†—ä½™ã€WARP å‡ºå£ (AI è§£è€¦),è§ä»“åº“ docs/06"
+echo " ÌáÊ¾:"
+echo "  - ±¸·İ /usr/local/etc/xray/config.json ÓëÒÔÉÏĞÅÏ¢"
+echo "  - ºóĞø¼Ó½Úµã/¸Ä¶Ë¿Ú: ±à¼­ config.json ºó systemctl restart xray"
+echo "  - ¿ÉÑ¡¼Ó¹Ì: Hysteria2 (UDP) Èë¿ÚÈßÓà¡¢WARP ³ö¿Ú (AI ½âËø),¼û²Ö¿â docs/06"

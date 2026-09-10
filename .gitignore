@@ -24,4 +24,6 @@ profiles/
 # Temp
 *.bak
 *.tmp
+# Handoff doc (transient, may contain live IPs; delete after handoff)
+HANDOFF.md
 # Wrangler local cache.wrangler/

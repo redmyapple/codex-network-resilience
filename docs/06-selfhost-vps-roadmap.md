@@ -19,7 +19,7 @@ Clash Verge (rule 模式)
 **配置要求**（个人代理足够，来源 personal-edge-proxy 实测）：
 
 ```
-1 vCPU / 1GB RAM / Ubuntu 24.04 LTS 或 Debian 12+
+1 vCPU / 1GB RAM / Ubuntu 24.04 LTS、Debian 12+ 或 AlmaLinux 9 / Rocky 9
 公网 IPv4 + TCP/UDP 可用
 ```
 
@@ -54,6 +54,13 @@ type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh root@<VPS_IP> "umask 077; mkdir 
 # 3. 验证密钥登录成功（这一步之后密码登录可以关，也可以先留着）
 ssh root@<VPS_IP>
 ```
+
+
+### 踩坑：AlmaLinux / RHEL 的 sshd
+
+- 官方镜像常见 `PubkeyAuthentication no`，只开密码。写入 authorized_keys 后必须再打开公钥认证并 `systemctl restart sshd`。
+- `AuthenticationMethods publickey,password`（逗号）表示公钥**和**密码都要过；二选一写空格：`publickey password`。sshd 是**先出现的值生效**，后写的 drop-in 盖不住前面的 no。
+- AlmaLinux 9 默认 SELinux Enforcing，Xray 用 nobody 听 443 会被拦；`deploy-vps-xray.sh` 会处理 dnf / firewalld / SELinux Permissive。
 
 ## 第三步：一键部署（把本仓库脚本传上去执行）
 

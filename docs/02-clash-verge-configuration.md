@@ -315,5 +315,6 @@ PUT /proxies/<组名>  body={"name":"<节点名>"}
 ## 常见坑
 
 - `mode=global` 会让所有流量走 GLOBAL 组，**规则全部失效**。分流必须用 `rule` 模式。
+- Clash Verge 重启后 `config.yaml` 与运行时 yaml 可能把 `mode` 写回 `global`（规则全失效、mixed-port 表现为 502）。改配置后确认 GUI / `clash-verge.yaml` / `config.yaml` 三处都是 `rule`。
 - 改完覆盖文件后要让 Verge 重新生成运行时配置并 reload，否则不生效。
 - `dialer-proxy`（机场前置 → 住宅落地）在当前住宅中转上会 TLS 失败：部分住宅代理商拒绝"再套一层代理到达"的连接。用**分流规则**替代更可靠。
