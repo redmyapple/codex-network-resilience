@@ -6,11 +6,11 @@
 
 ```
 所有流量 → Clash Verge (127.0.0.1:7897)
-  ├─ AI/账号域名 (openai/chatgpt/anthropic/claude/github/google)
+  ├─ AI/X/Google/Netflix
   │        → MIYA-STATIC（住宅固定出口，Fail Closed）
-  ├─ 流媒体/社交 (x/twitter/youtube)
-  │        → AI智能优选（机场，自动选优）
-  └─ 其余（MATCH）→ AI智能优选
+  ├─ TG/Discord/YouTube
+  │        → 线路冗余（自建 VPS → 机场 → CF）
+  └─ 其余（MATCH）→ 线路冗余
 ```
 
 **原则**：AI 出口与机房 IP 解耦；流媒体走快节点；国内直连（GEOIP CN → DIRECT）。
@@ -21,7 +21,7 @@
 ```yaml
 - name: AI智能优选
   type: fallback
-  interval: 300
+  interval: 120
   url: http://www.gstatic.com/generate_204
   proxies:
     - <节点A>
@@ -34,7 +34,7 @@
 ```yaml
 - name: MIYA-STATIC
   type: fallback
-  interval: 300
+  interval: 120
   url: http://www.gstatic.com/generate_204
   proxies:
     - MIYA-Japan-Static       # SOCKS5 首选
@@ -74,12 +74,16 @@ rules:
 - DOMAIN-SUFFIX,googleapis.com,MIYA-STATIC
 - DOMAIN-SUFFIX,gstatic.com,MIYA-STATIC
 - DOMAIN-SUFFIX,googleusercontent.com,MIYA-STATIC
-- DOMAIN-SUFFIX,x.com,AI智能优选
-- DOMAIN-SUFFIX,twitter.com,AI智能优选
-- DOMAIN-SUFFIX,youtube.com,AI智能优选
-- DOMAIN-SUFFIX,googlevideo.com,AI智能优选
+- DOMAIN-SUFFIX,x.com,MIYA-STATIC
+- DOMAIN-SUFFIX,twitter.com,MIYA-STATIC
+- DOMAIN-SUFFIX,netflix.com,MIYA-STATIC
+- DOMAIN-SUFFIX,netflix.net,MIYA-STATIC
+- DOMAIN-SUFFIX,nflximg.net,MIYA-STATIC
+- DOMAIN-SUFFIX,nflxvideo.net,MIYA-STATIC
+- DOMAIN-SUFFIX,youtube.com,线路冗余
+- DOMAIN-SUFFIX,googlevideo.com,线路冗余
 # ... GEOIP CN DIRECT ...
-- MATCH,AI智能优选
+- MATCH,线路冗余
 ```
 
 ## 持久化：Clash Verge 的覆盖文件
@@ -109,6 +113,8 @@ delete: []
 
 Clash Verge 默认关闭 TCP external controller，改用命名管道 `\\.\pipe\verge-mihomo`。
 
+命名管道在不同 Verge/Mihomo 版本上可能不可靠；持久化修改应优先写入 `profiles\` 覆盖层并重启 Verge，少用 `PUT /proxies`。
+
 ```powershell
 # 重载配置
 # PUT /configs  body={"path":"<clash-verge.yaml 绝对路径>"}
@@ -127,7 +133,7 @@ Clash Verge 默认关闭 TCP external controller，改用命名管道 `\\.\pipe\
 curl.exe -4 -x http://127.0.0.1:7897 https://chatgpt.com/cdn-cgi/trace
 # ip= 应为住宅 IP，loc= 应为对应国家
 
-# 未列入的域名走机场
+# MATCH 走线路冗余（自建 VPS → 机场 → CF）
 curl.exe -4 -x http://127.0.0.1:7897 https://api.ipify.org
 ```
 
@@ -146,16 +152,30 @@ rules:
 
 浏览器会自动回退 HTTP/2 over TCP，无感知；代理链路从此不再有 QUIC 失败重试。
 
-### 2. DNS 加固（DoH 优先，明文兜底）
+### 2. DNS 加固（国内直连，国外 DoH 经代理）
 
-明文 DNS 易被污染。在 `nameserver` 里加入 DoH（国内阿里/腾讯 DoH 可用性好）：
+国内域名使用国内 DoH 直连；国外域名使用带 `#线路冗余` 的 DoH，确保 DNS 请求也进入代理线路；`ipv6: false` 继续保持 IPv4-only：
 
 ```yaml
 dns:
+  ipv6: false
+  respect-rules: true
+  nameserver-policy:
+    "geosite:cn":
+    - "https://223.5.5.5/dns-query#DIRECT"
+    - "https://doh.pub/dns-query#DIRECT"
+    "geosite:geolocation-!cn":
+    - "https://1.1.1.1/dns-query#线路冗余"
+    - "https://8.8.8.8/dns-query#线路冗余"
   nameserver:
-  - https://223.5.5.5/dns-query     # 阿里 DoH
-  - https://doh.pub/dns-query       # 腾讯 DoH
-  - 223.5.5.5                        # 明文兜底
+  - "https://1.1.1.1/dns-query#线路冗余"
+  - "https://8.8.8.8/dns-query#线路冗余"
+  direct-nameserver:
+  - "https://223.5.5.5/dns-query"
+  - "https://doh.pub/dns-query"
+  direct-nameserver-follow-policy: false
+  proxy-server-nameserver:
+  - 223.5.5.5
   - 119.29.29.29
 ```
 
@@ -199,17 +219,18 @@ curl.exe -4 -v --resolve "<节点域名>:443:<优选IP>" "https://<节点域名>
 ```yaml
 # 出口分层（rules 顺序即优先级）
 - openai/chatgpt/anthropic/claude/github/google → MIYA-STATIC   # 住宅固定出口
-- x/twitter/youtube/一般流量                     → 线路冗余      # 自动互备
+- TG/Discord/YouTube/MATCH                      → 线路冗余      # 自动互备
 - GEOIP CN → DIRECT
 
-# 线路冗余组：机场全挂时自动切 CF 节点
+# 线路冗余组：自建优先，机场次之，CF 最后
 - name: 线路冗余
   type: fallback
-  interval: 300
+  interval: 120
   url: http://www.gstatic.com/generate_204
   proxies:
+  - SelfHost-TKY-BGP  # 自建 VPS
   - AI智能优选        # 机场（组引用）
-  - CF备用节点        # CF Workers/Pages 免费节点
+  - CF备用-JP         # CF Workers/Pages 免费节点
 ```
 
 ### CF 节点模板（edgetunnel 部署后）
@@ -316,5 +337,6 @@ PUT /proxies/<组名>  body={"name":"<节点名>"}
 
 - `mode=global` 会让所有流量走 GLOBAL 组，**规则全部失效**。分流必须用 `rule` 模式。
 - Clash Verge 重启后 `config.yaml` 与运行时 yaml 可能把 `mode` 写回 `global`（规则全失效、mixed-port 表现为 502）。改配置后确认 GUI / `clash-verge.yaml` / `config.yaml` 三处都是 `rule`。
+- 命名管道 API 在部分版本上不可靠；优先使用 `profiles\` 覆盖层并重启 Clash Verge，避免依赖 `PUT /proxies`。
 - 改完覆盖文件后要让 Verge 重新生成运行时配置并 reload，否则不生效。
 - `dialer-proxy`（机场前置 → 住宅落地）在当前住宅中转上会 TLS 失败：部分住宅代理商拒绝"再套一层代理到达"的连接。用**分流规则**替代更可靠。

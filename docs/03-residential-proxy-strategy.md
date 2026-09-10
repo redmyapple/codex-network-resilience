@@ -43,16 +43,17 @@ curl.exe -x http://127.0.0.1:7897 -G --data-urlencode "fields=status,query,count
 住宅组（如 `MIYA-STATIC`）**只放住宅节点**，不要放机场作为回退。这样住宅不可用时请求失败，而不是悄悄换成本机 IP / 机房 IP 泄露出口身份。
 
 ### 3. 健康检查
-`fallback` 组 + `interval` + `url`，每 300s 探测一次，主节点失效自动切换。
+`fallback` 组 + `interval` + `url`，每 120s 探测一次，主节点失效自动切换。
 
 ### 4. 按域名精确分流
-只把需要固定出口的服务（AI/账号）路由到住宅，其余走机场，避免拖慢大流量场景。
+AI/X/Google/Netflix 路由到住宅；TG/Discord/YouTube 及 MATCH 进入线路冗余（自建 VPS → 机场 → CF），避免拖慢大流量场景。
 
 ## 出口链路（最终形态）
 
 ```
 Client → Clash(7897) → [openai/chatgpt/...] → MIYA-STATIC → <MIYAIP_HOST>:8001 → <住宅IP>（住宅）
-                          [x/youtube/...]     → AI智能优选   → 机场节点            → 机房 IP
+                          [x/google/netflix]  → MIYA-STATIC   → <MIYAIP_HOST>:8001 → 住宅 IP
+                          [tg/discord/youtube/MATCH] → 线路冗余 → 自建 VPS → 机场 → CF
 ```
 
 ## 验证命令
@@ -62,7 +63,7 @@ Client → Clash(7897) → [openai/chatgpt/...] → MIYA-STATIC → <MIYAIP_HOST
 curl.exe -4 -x http://127.0.0.1:7897 https://chatgpt.com/cdn-cgi/trace
 # → ip=<住宅IP>  loc=JP
 
-# 非住宅域名走机场
+# MATCH 走线路冗余（自建 VPS → 机场 → CF）
 curl.exe -4 -x http://127.0.0.1:7897 https://api.ipify.org
 
 # 纯净度核验

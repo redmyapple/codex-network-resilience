@@ -10,6 +10,7 @@
 4. **住宅/出口策略变化** → 更新 `docs/03-residential-proxy-strategy.md`。
 5. **借鉴的项目/方法更新** → 更新 `docs/04-methodology-references.md`。
 6. **脚本更新** → 更新 `scripts/`（如 `filter-best-node.ps1`），并保证不含真实凭据。
+7. **交接 / 当前部署状态** → 更新 docs/10-codex-handoff.md（可复用方案与任务；本机 IP 只写 gitignore 的 HANDOFF.md）。
 
 ## 安全红线（必须遵守）
 

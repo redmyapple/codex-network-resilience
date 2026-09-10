@@ -9,7 +9,7 @@
 
 - 定位并修复 CodeX 走错代理/被本地中转劫持的问题
 - 让 AI / GPT / 账号类服务走**固定住宅出口**（避开机房 IP 封锁）
-- 让流媒体 / 一般流量走**机场快速节点**（兼顾速度）
+- 让 TG / Discord / YouTube / MATCH 走**线路冗余**（自建 VPS → 机场 → CF）
 - 用 **Fail Closed** 保证固定出口失效时绝不静默泄露为机房 IP
 
 ## 目录结构
@@ -26,7 +26,8 @@ codex-network-resilience/
 │   ├── 06-selfhost-vps-roadmap.md             # 自建 VPS 路线图（彻底摆脱机场依赖）
 │   ├── 07-vps-provider-research.md            # 低价 VPS 厂商调研（DediRock 案例 + 库存 API 逆向）
 │   ├── 08-clients-and-fallback-playbook.md    # 客户端矩阵与应急策略（bannedbook/fanqiang 整理）
-│   └── 09-censorship-theory-and-coldstart.md  # 封锁原理速查与冷启动预案（fq-book 整合）
+│   ├── 09-censorship-theory-and-coldstart.md  # 封锁原理速查与冷启动预案（fq-book 整合）
+│   └── 10-codex-handoff.md                    # 交接 Codex：方案 C+D、已完成与未完成任务
 ├── scripts/
 │   ├── deploy-vps-xray.sh                     # VPS 一键部署 Xray VLESS+REALITY
 │   └── filter-best-node.ps1                   # 基于 ip-api.com 的节点质量筛选脚本
@@ -35,10 +36,10 @@ codex-network-resilience/
 ## 核心结论（TL;DR）
 
 1. **CodeX 连接失败先查三件事**：`.codex/.env` 的代理端口、`config.toml` 的 `openai_base_url`、`auth.json` 的 `auth_mode` 与 API Key。第三方工具（opencodex / teamorouter 等）可能悄悄注入这些值。
-2. **Clash 用 rule 模式 + 按域名分流**：AI/账号域名 → 住宅出口；流媒体 → 机场出口。
+2. **Clash 用 rule 模式 + 按域名分流**：AI/X/Google/Netflix → MIYA-STATIC；TG/Discord/YouTube/MATCH → 线路冗余。
 3. **固定出口必须 Fail Closed**：住宅组只放住宅节点，住宅失效时请求失败，而不是静默回落到机场机房 IP。
-4. **住宅节点做健康检查**：`fallback` 组 + 每 300s 健康检查，SOCKS5 挂了自动切 HTTP，仍保持住宅出口。
-5. **永远不要只准备一套线路**：机场（主用）+ CF Workers/Pages 免费节点（edgetunnel，备用）+ 住宅落地（AI 固定出口），三层故障模式互相独立，组成自动互备的冗余架构。
+4. **住宅节点做健康检查**：`fallback` 组 + 每 120s 健康检查，SOCKS5 挂了自动切 HTTP，仍保持住宅出口。
+5. **永远不要只准备一套线路**：线路冗余固定为自建 VPS → 机场 → CF；住宅单独 Fail Closed，不与机房互相回退。
 6. **企业网络先做连通性验证再配置**：防火墙可能是 SNI 域名黑名单（知名代理域名被掐、普通 CF 域名畅通），测速超低延迟可能是 TCP SYN 本地代答的假象——用 TLS 握手 + 端到端出口验证甄别。
 7. **客户端也做冗余**：Clash Verge（主，规则分流强）+ NekoBox（备，故障域隔离），两套内核两套配置流水线，一个瘫痪另一个顶上。
 8. **去广告在规则层拦截**：`GEOSITE,category-ads-all,REJECT` 一行规则全局去广告，省流量且零维护。
@@ -57,7 +58,7 @@ flowchart LR
     end
     subgraph 出口层
         MIYA[MIYA-STATIC<br/>住宅固定出口 · Fallback + Fail Closed]
-        Airport[AI智能优选<br/>机场节点 · Fallback 自动切换]
+        Redundant[线路冗余<br/>SelfHost-TKY-BGP → AI智能优选 → CF备用-JP]
         Direct[DIRECT<br/>国内直连]
     end
     subgraph 落地
@@ -66,14 +67,14 @@ flowchart LR
     end
 
     App --> Router
-    Router -- "openai / chatgpt / anthropic / claude / github / google" --> MIYA
-    Router -- "x / twitter / youtube / 一般网站" --> Airport
+    Router -- "AI / X / Google / Netflix" --> MIYA
+    Router -- "TG / Discord / YouTube / MATCH" --> Redundant
     Router -- "GEOIP CN / 私网" --> Direct
     MIYA --> ResIP
-    Airport --> AIP
+    Redundant --> AIP
 ```
 
-**阅读要点**：入口问题换节点；出口问题换策略。AI/账号走住宅（纯净、Fail Closed），流媒体走机场（快），国内直连。
+**阅读要点**：入口问题换节点；出口问题换策略。AI/X/Google/Netflix 走住宅（纯净、Fail Closed），TG/Discord/YouTube/MATCH 走线路冗余，国内直连。
 
 ## 快速开始
 
