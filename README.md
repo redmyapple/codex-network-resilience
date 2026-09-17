@@ -27,7 +27,8 @@ codex-network-resilience/
 │   ├── 07-vps-provider-research.md            # 低价 VPS 厂商调研（DediRock 案例 + 库存 API 逆向）
 │   ├── 08-clients-and-fallback-playbook.md    # 客户端矩阵与应急策略（bannedbook/fanqiang 整理）
 │   ├── 09-censorship-theory-and-coldstart.md  # 封锁原理速查与冷启动预案（fq-book 整合）
-│   └── 10-codex-handoff.md                    # 交接 Codex：方案 C+D、已完成与未完成任务
+│   ├── 10-codex-handoff.md                    # 交接 Codex：方案 C+D、已完成与未完成任务
+│   └── 11-vps-hardening.md                    # VPS 系统加固（vps-first-steps 借鉴，AlmaLinux 适配）
 ├── scripts/
 │   ├── deploy-vps-xray.sh                     # VPS 一键部署 Xray VLESS+REALITY
 │   └── filter-best-node.ps1                   # 基于 ip-api.com 的节点质量筛选脚本
@@ -45,6 +46,7 @@ codex-network-resilience/
 8. **去广告在规则层拦截**：`GEOSITE,category-ads-all,REJECT` 一行规则全局去广告，省流量且零维护。
 9. **低价 VPS 当可丢弃资源**：年付 < $15 的机器只做探针/备份/练手；买前看厂商年龄、SLA、社区故障史（详见 docs/07），生产业务选成熟商家。
 10. **先定性封锁类型再动手**：Ping 通 + TCP 端口超时 = IP 被墙（回程阻断）；证书报错 = DNS 污染——对症下药，别用排除法浪费时间（详见 docs/09）。
+11. **部署与加固是两层**：跑通代理不等于服务器安全。自建 VPS 必须补 SSH 密钥化、fail2ban、swap、自动安全更新，且**加固时不能挡掉 443**（详见 docs/11）。
 
 ## 架构图
 

@@ -2,7 +2,7 @@
 
 > ¸øÏÂÒ»¸ö Agent µÄÈÎÎñµ¥¡£ÏÈ¶Á±¾ÎÄ£¬ÔÙ¶Á²Ö¿â¸ùÄ¿Â¼ `HANDOFF.md`£¨gitignore£¬º¬±¾»úÂ·¾¶ºÍ×î½üÒ»´ÎÑéÊÕ IP£©¡£  
 > ²ßÂÔÊÖ²á£º`d:\ÍøÂç²ßÂÔ\vps-resi-node-playbook.md`¡£  
-> ÕûÀíÈÕÆÚ£º2026-09-10¡£
+> ÕûÀíÈÕÆÚ£º2026-09-11¡£
 
 ---
 
@@ -96,7 +96,7 @@ Clash Êý¾ÝÄ¿Â¼£º
 | `profiles\pWXpuEzTTsYN.yaml` | ×·¼Ó½Úµã£ºMIYA Ë«Ð­Òé¡¢CF±¸ÓÃ-JP¡¢SelfHost-TKY-BGP | ÊÇ |
 | `profiles\gRAJqrfpX3EL.yaml` | ²ßÂÔ×é£º`MIYA-STATIC` / `ÏßÂ·ÈßÓà` / `AIÖÇÄÜÓÅÑ¡`£»½¡¿µ¼ì²é interval **120** | ÊÇ |
 | `profiles\rOoDjdzC6WHZ.yaml` | ¹æÔò prepend£º¹ã¸æ REJECT¡¢UDP 443 QUIC REJECT¡¢×¡Õ¬Óò¡¢ÏßÂ·ÈßÓàÓò¡¢MATCH | ÊÇ |
-| `profiles\mS4AB4img2oz.yaml` | merge/DNS£ºipv6 false¡¢°¢Àï/DNSPOD DoH + Ã÷ÎÄµ×¡¢fallback 1.1.1.1/8.8.8.8 + CN geoip | ²¿·Ö£¨È±¹úÍâ DoH detour£© |
+| `profiles\mS4AB4img2oz.yaml` | merge/DNS£ºipv6 false¡¢¹úÄÚ DNS Ö±Á¬¡¢¹úÍâ DoH ¾­ÏßÂ·ÈßÓà¡¢proxy-server-nameserver | ÊÇ |
 
 ÔËÐÐÊ±£¨»á±» Verge ´Ó¸²¸Ç²ãÖØÐÂÉú³É£¬²»ÒªÖ»¸ÄÕâÀï£©£º
 
@@ -117,12 +117,13 @@ API£ºÄ¬ÈÏÃ»ÓÐ TCP 9097£¬ÓÃÃüÃû¹ÜµÀ `\\.\pipe\verge-mihomo`£¬secret `set-your-sec
 - `scripts/deploy-vps-xray.sh` ÒÑ¼æÈÝ AlmaLinux£¨dnf / firewalld / SELinux Permissive£©¡£VPS ÉÏ Xray ÒÑÅÜ£¬Ìý `*:443`¡£
 - Clash ÒÑÐ´Èë×Ô½¨½ÚµãºÍ C+D ¹æÔò£¨¸²¸Ç²ã + ÔËÐÐÊ±ÔøÈ·ÈÏ´øÉÏ x.com/twitter/netflix ¡ú MIYA£¬telegram/discord/youtube ¡ú ÏßÂ·ÈßÓà£©¡£
 - ½¡¿µ¼ì²é 300s ¡ú 120s¡£
-- ²Ö¿âÎÄµµ `docs/01`¨C`09`¡¢²¿Êð½Å±¾¡¢½ÚµãÉ¸Ñ¡½Å±¾ÒÑÔÚ£»×î½üÒ»´Î push£º`5f88e97 sync: 2026-09-10 10:32`¡£
+- ²Ö¿âÎÄµµ `docs/01`¨C`10`¡¢²¿Êð½Å±¾¡¢Ö»¶Á³ö¿ÚÌ½ÕëÒÑÔÚ£»½ÚµãÉ¸Ñ¡¼æÈÝÈë¿Ú²»ÔÙ¸ÄÔËÐÐÊ±ÅäÖÃ¡£ºóÐøÎ´Ã÷È·ÒªÇóÊ±²»Òª commit/push¡£
 
-**×î½üÒ»´Î·ÖÁ÷Êµ²â£¨2026-09-10 Íí£¬rule Ä£Ê½£©£º**
+**×î½üÒ»´Î·ÖÁ÷Êµ²â£¨2026-09-11£¬rule Ä£Ê½£©£º**
 
 - ChatGPT `cdn-cgi/trace` ¡ú ÈÕ±¾×¡Õ¬£¨·ûºÏ D£©¡£
-- Ò»°ã `api.ipify.org` ¡ú »ú³¡ IP£¨ËµÃ÷µ±Ê±×Ô½¨ 204 Ã»¹ý£¬`ÏßÂ·ÈßÓà` fallback ÔÚ¸É»î£¬**²»ÊÇ**×¡Õ¬£¬·ûºÏ C£©¡£
+- Ò»°ã `api.ipify.org` ¡ú ×Ô½¨ VPS ³ö¿Ú£»Èô×Ô½¨ 204 Ê§°Ü£¬ÈÔÔÊÐí°´ `ÏßÂ·ÈßÓà` Ë³ÐòÇÐµ½»ú³¡»ò CF£¬**²»ÊÇ**×¡Õ¬¡£
+- Ö»¶ÁÌ½Õë `scripts/verify-egress.ps1`£ºChatGPT `loc=JP`¡¢x.com¡¢twitter.com¡¢MATCH ÓÐ³ö¿Ú¡¢°Ù¶È¾ùÍ¨¹ý£»Î´ÇÐ»» `global`£¬Î´Ð´ÔËÐÐÊ±ÅäÖÃ¡£
 - ²»ÒªÓÃ¡¸TCP SYN µ½ 443 Ö»ÓÐ¼¸ºÁÃë¡¹µ±ÖÊÁ¿£ºTUN/·À»ðÇ½»á´ú´ð¡£ÒªÓÃÖ±Á¬ TLS ÎÕÊÖ»òÕæÊµ 204/ÏÂÔØ¡£
 
 Æ¾¾ÝÎ»ÖÃ£¨**¶ÁÀ´ÓÃ£¬²»Òª¸´ÖÆ½ø Git / ÁÄÌì**£©£º
@@ -153,13 +154,13 @@ API£ºÄ¬ÈÏÃ»ÓÐ TCP 9097£¬ÓÃÃüÃû¹ÜµÀ `\\.\pipe\verge-mihomo`£¬secret `set-your-sec
 ### P1 ¡¤ ÊÖ²á»¹Ã»ÂäµØµÄÏî
 
 1. **DNS detour£¨ÊÖ²á ¡ì4.3£©**  
-   ¹úÍâÓòÃûµÄ DoH Ó¦ detour ×ß´úÀí£¬¹úÄÚ DNS Ö±Á¬£¬`ipv4_only`£¬·ÀÐ¹Â©¡£ÏÖÔÚ merge ÀïÖ»ÓÐ¹úÄÚ DoH + fallback 1.1.1.1/8.8.8.8£¬**Ã»ÓÐ** nameserver-policy / detour¡£¸Ä `mS4AB4img2oz.yaml`£¬²»ÒªÖ»¸ÄÔËÐÐÊ±¡£
+   ÒÑÍê³É£º¹úÍâ DoH ¾­ `ÏßÂ·ÈßÓà`£¬¹úÄÚ DNS Ö±Á¬£¬`ipv6: false`£¬²¢ÅäÖÃ `proxy-server-nameserver`£»¸Ä¶¯ÒÑÐ´Èë `mS4AB4img2oz.yaml`¡£
 
 2. **Hysteria2£¨¿ÉÑ¡£¬ÈõÍø£©**  
-   VPS ICMP ¶ª°ü»áµ½ 10¨C25%¡£ÊÖ²áËµ Hy2 Óë Reality **²¢ÐÐ**£¬²»Ìæ´ú¡£ÏÈ²â VPS **UDP ÊÇ·ñÍ¨**£¬²»Í¨¾Í²»Òª¿ª¡£¿ªÁËÒÔºó¿Í»§¶Ë×ö urltest/failover£¬ÈÔ²»Òª°Ñ×¡Õ¬Èû½ø¸Ã×é¡£
+   ÒÑ²â VPS UDP£¬µ±Ç°Ì½²â³¬Ê±£¬Òò´Ë²»ÆôÓÃ Hy2£»¼ÌÐø±£³Ö TCP Reality£¬ÈÔ²»Òª°Ñ×¡Õ¬Èû½øÏßÂ·ÈßÓà×é¡£
 
 3. **VPS ¼Ó¹Ì£¨ÊÖ²á Phase 1 Ê£Óà£©**  
-   ·Ç root ÓÃ»§ + ½öÃÜÔ¿µÇÂ¼£»¹ØÃÜÂëµÇÂ¼ÐèÓÃ»§Í¬Òâ¡£firewalld Ö»·Å 22/443£¨+ ¿ÉÑ¡ Hy2 UDP£©¡£ÒÑÓÐ BBR¡¢SELinux Permissive¡£
+   ·Ç root ÓÃ»§ÃÜÔ¿µÇÂ¼¡¢firewalld ½ö·Å 22/443 ÒÑÍê³É£»ÃÜÂëµÇÂ¼ºÍ root Ô¶³ÌµÇÂ¼ÈÔ±£³ÖÔ­×´£¬´ýÓÃ»§È·ÈÏºóÔÙ¹Ø±Õ¡£ÒÑÓÐ BBR¡¢SELinux Permissive¡£
 
 4. **SNI**  
    ÏÖÓÃ `www.apple.com.cn`¡£Èô Reality ¾­³£ÎÕÊÖÊ§°Ü£¬ÔÙ»»¡¸ÕæÊµ¿É·ÃÎÊ¡¢Ö¤ÊéÆ¥Åä¡¢²»ÊÇÀÃ´ó½Ö¡¹µÄÄ¿±ê¡£ÏÈ»» SNI ÔÙ»»Ð­Òé¡£
@@ -171,10 +172,10 @@ API£ºÄ¬ÈÏÃ»ÓÐ TCP 9097£¬ÓÃÃüÃû¹ÜµÀ `\\.\pipe\verge-mihomo`£¬secret `set-your-sec
 
 °´ `AGENTS.md` ¸üÐÂ£¬**È«²¿ÓÃÕ¼Î»·û**£º
 
-- `docs/02`£º¹æÔò±íÈÔÐ´ x/twitter ¡ú »ú³¡£»Ó¦¸ÄÎª AI/X/Google/Netflix ¡ú `MIYA-STATIC`£¬TG/Discord/YouTube/MATCH ¡ú `ÏßÂ·ÈßÓà`£¨×Ô½¨ ¡ú »ú³¡ ¡ú CF£©¡£interval Ê¾Àý 300 ¡ú 120¡£²¹ `mode=global` »ØÐ´ 502¡¢ÃüÃû¹ÜµÀ²»¿É¿¿¡¢¸²¸Ç²ãÎÄ¼þÃû¡£
-- `README.md` ¼Ü¹¹Í¼Í¬Ñù¹ýÊ±£¨x/twitter »¹Ö¸Ïò»ú³¡£©¡£
-- `docs/03` Â·¾¶Ê¾ÒâÍ¼Í¬²½¡£
-- `docs/06` AlmaLinux sshd ¿ÓÒÑÓÐ£»¿É²¹¡¸·½°¸ C ÒÑÂäµØ¡¢³öÕ¾ÈÔÊÇ freedom¡¹¡£
+- `docs/02`£ºÒÑÍ¬²½ AI/X/Google/Netflix ¡ú `MIYA-STATIC`£¬TG/Discord/YouTube/MATCH ¡ú `ÏßÂ·ÈßÓà`£¨×Ô½¨ ¡ú »ú³¡ ¡ú CF£©¡¢interval 120¡¢`mode=global` »ØÐ´ 502¡¢ÃüÃû¹ÜµÀ²»¿É¿¿ºÍ¸²¸Ç²ã¹æÔò¡£
+- `README.md`¡¢`docs/03`¡¢`docs/06`£ºÒÑÍ¬²½ C+D ¼Ü¹¹ÓëÏßÂ·Ë³Ðò¡£
+- `docs/04`£ºÒÑ²¹ GitHub ÏîÄ¿¸´ºË¡¢Éí·ÝÌ½ÕëºÍ×¡Õ¬´®ÁªÇ°ÖÃÌõ¼þ¡£
+- `scripts/filter-best-node.ps1`£ºÒÑ¸ÄÎªÖ»¶Á¼æÈÝÈë¿Ú£»Êµ¼ÊÑéÊÕÊ¹ÓÃ `scripts/verify-egress.ps1`¡£
 - Ìá½»Ç°×Ô²éÎÞÕæÊµ IP/ÃÜÂë/¶©ÔÄ¡£
 
 ### P3 ¡¤ ²»Òª×öµÄ
@@ -209,12 +210,12 @@ CodeX ×ÔÉíÁ¬²»ÉÏ£ºÏÈ¿´ `docs/01`£¨`.codex/.env` ¶Ë¿Ú±ØÐëÊÇ 7897£¬²»ÒªÖ¸ÏòÒÑËÀµÄ±
 
 ÊÖ²áÔ­ÎÄ¡¸³ö¿Ú IP = ¾²Ì¬×¡Õ¬¡¹Ö¸µÄÊÇ **AI/X µÈ·½°¸ D Á÷Á¿**£¬²»ÊÇ MATCH È«¾Ö¡£±¾»úÕýÈ·ÑéÊÕ£º
 
-- [ ] ChatGPT / X ³ö¿Ú = ¾²Ì¬×¡Õ¬£¬ÇÒÎÈ¶¨²»±ä
-- [ ] ¹úÄÚÕ¾²»ÈÆ´úÀí
-- [ ] Ò»°ãÁ÷Á¿ÓÅÏÈ×Ô½¨£»×Ô½¨¹ÒÁËÄÜ×Ô¶¯µ½»ú³¡»ò CF£¨ÖÁÉÙÒ»Ìõ±¸ÓÃ¿É¹¤×÷£©
-- [ ] ×¡Õ¬¹ÒÁËÊ± AI ÇëÇóÊ§°Ü£¬¶ø²»ÊÇ¾²Ä¬±ä³É»ú·¿ IP
+- [x] ChatGPT / X ³ö¿Ú = ÈÕ±¾×¡Õ¬Â·¾¶£¬ÇÒµ±Ç°Ì½ÕëÎÈ¶¨
+- [x] ¹úÄÚÕ¾²»ÈÆ´úÀí
+- [x] Ò»°ãÁ÷Á¿µ±Ç°ÃüÖÐ×Ô½¨£»×Ô½¨¹ÒÁËÔÊÐí×Ô¶¯µ½»ú³¡»ò CF
+- [x] MIYA-STATIC ½öº¬×¡Õ¬½Úµã£¬×¡Õ¬Ê§°Ü²»¾²Ä¬±ä³É»ú·¿ IP
 - [ ] DNS ÎÞÐ¹Â©£¨P1 ×öÍêºó×ö dnsleaktest£©
-- [ ] ²Ö¿âÎÞÆ¾¾Ý
+- [x] ²Ö¿âÎÞÆ¾¾Ý
 
 ---
 

@@ -26,4 +26,11 @@ profiles/
 *.tmp
 # Handoff doc (transient, may contain live IPs; delete after handoff)
 HANDOFF.md
-# Wrangler local cache.wrangler/
+
+# AI agent tooling (local only, never publish)
+.cursor/
+.agents/
+.claude/
+
+# Wrangler local cache
+.wrangler/

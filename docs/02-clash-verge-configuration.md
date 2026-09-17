@@ -129,6 +129,9 @@ Clash Verge 默认关闭 TCP external controller，改用命名管道 `\\.\pipe\
 ## 验证分流是否正确
 
 ```powershell
+# 推荐：只读验证，不切 global、不调用命名管道、不写运行时配置
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-egress.ps1
+
 # 走住宅出口的域名（chatgpt.com）应返回住宅 IP
 curl.exe -4 -x http://127.0.0.1:7897 https://chatgpt.com/cdn-cgi/trace
 # ip= 应为住宅 IP，loc= 应为对应国家
